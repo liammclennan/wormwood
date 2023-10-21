@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import {clearInterval} from "timers";
 import {Iter, RowMarker} from "./iter";
+import * as Path from "node:path";
 
 export class Producer implements Iter {
     filePath: string;
@@ -11,8 +12,8 @@ export class Producer implements Iter {
     streamEnded: boolean = false;
 
 
-    constructor(filePath: string, columns: string[]) {
-        this.filePath = filePath;
+    constructor(table: string, columns: string[]) {
+        this.filePath = Path.join(__dirname, "../../data", `${table}.clef`);
         this.columns = columns;
         this.open();
     }
@@ -46,13 +47,13 @@ export class Producer implements Iter {
     async next(): Promise<any[] | RowMarker> {
         this.bufferIndex += 1;
 
-        return new Promise((res,rej) => {
+        return new Promise((res, _) => {
             if (this.bufferIndex >= this.buffer.length) {
                 if (this.buffer[this.bufferIndex-1] === '') {
                     this.buffer = [];
                     this.bufferIndex = 0;
                 } else {
-                    this.stream.resume();
+                    this.stream?.resume();
                 }
                 if (this.streamEnded) {
                     return "end of file" as RowMarker;
