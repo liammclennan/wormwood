@@ -1,8 +1,7 @@
 import * as Planner from "../planner/planner";
-import {Producer} from "./producer";
+import {Producer,Iter,RowMarker} from "./producer";
 import {Filter} from "./filter";
 import {ProducerStep} from "../planner/planner";
-import {Iter, RowMarker} from "./iter";
 
 export function execute(plan: Planner.Plan): Iter {
     const producer = new Producer((plan[0] as ProducerStep).table, (plan[0] as ProducerStep).columns);

@@ -1,6 +1,5 @@
 import * as fs from "node:fs/promises";
 import {clearInterval} from "timers";
-import {Iter, RowMarker} from "./iter";
 import * as Path from "node:path";
 
 export class Producer implements Iter {
@@ -76,6 +75,10 @@ export class Producer implements Iter {
         const parsed = JSON.parse(line);
         return this.columns.map((c) => parsed[c]);
     }
-
-
 }
+
+export interface Iter {
+    next(): Promise<any[] | RowMarker>;
+}
+
+export type RowMarker = "empty row" | "end of file";
