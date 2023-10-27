@@ -6,16 +6,18 @@ export function plan(query: Query): Plan {
         table: query.source,
         columns: query.columns,
     };
-    const filterStep: FilterStep = {
-        name: "filter",
-        columns: query.columns,
-        property: query.filter[0],
-        value: query.filter[1],
-    };
-    return [
-        producerStep,
-        filterStep
-    ];
+    let steps: Step[] = [producerStep];
+    if (query.filter) {
+        let filterStep: FilterStep = {
+            name: "filter",
+            columns: query.columns,
+            property: query.filter[0],
+            value: query.filter[1],
+        };
+        steps.push(filterStep);
+    }
+
+    return steps;
 }
 
 export type Plan = Step[];

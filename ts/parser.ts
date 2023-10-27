@@ -1,9 +1,10 @@
 export function parse(q: string): Query {
     var [command, rest] = commandParser(q);
     var [fields, rest] = fieldsParser(rest);
-    rest = wordParser(rest);
+    rest = wordParser(rest); // FROM
     var [source, rest] = tableParser(rest);
-    rest = wordParser(rest);
+    console.log('source', source, 'rest', rest);
+    rest = wordParser(rest); // WHERE
     var filter = filterParser(rest);
 
     return {
@@ -22,7 +23,7 @@ export type Query = {
     command: Command;
     columns: string[];
     source: string;
-    filter: EqualityPredicate;
+    filter?: EqualityPredicate;
 }
 
 function commandParser(q: string): [Command, string] {
@@ -54,15 +55,19 @@ function tableParser(q: string): [source: string, rest: string] {
     return [takeToSpace(q), takeFromSpace(q)];
 }
 
-function filterParser(q: string): EqualityPredicate {
+function filterParser(q: string): EqualityPredicate | undefined {
+    console.log('filter q', q);
+    if (q.trim() === '') {
+        return;
+    }
     return [q.split(" = ")[0], JSON.parse(q.split(" = ")[1])];
 }
 
 function takeToSpace(input: string): string {
-    return input.slice(0, input.indexOf(' '));
+    return input.slice(0, input.indexOf(' ') > 0 ? input.indexOf(' ') : input.length);
 }
 
 function takeFromSpace(input: string): string {
-    return input.slice(input.indexOf(' ') + 1);
+    return input.slice(input.indexOf(' ') > 0 ? input.indexOf(' ') + 1: );
 }
 

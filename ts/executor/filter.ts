@@ -3,8 +3,8 @@ import {Iter, RowMarker} from "./producer";
 export class Filter implements Iter
 {
     private source: Iter;
-    private property: string;
-    private value: any;
+    private readonly property: string;
+    private readonly value: any;
     private columns: string[];
 
     constructor(source: Iter, columns: string[], property: string, value: any) {

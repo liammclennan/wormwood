@@ -5,7 +5,7 @@ import {ProducerStep} from "../planner/planner";
 
 export function execute(plan: Planner.Plan): Iter {
     const producer = new Producer((plan[0] as ProducerStep).table, (plan[0] as ProducerStep).columns);
-    const stack = plan.map((step) => {
+    const stack = plan.slice(1).map((step) => {
         switch (step.name) {
             case "filter": return new Filter(producer, step.columns, step.property, step.value);
         }
