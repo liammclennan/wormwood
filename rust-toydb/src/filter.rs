@@ -5,7 +5,7 @@ pub(crate) struct Filter<'a> {
 }
 
 impl<'a> Filter<'a> {
-    pub(crate) fn new(source: &'a mut dyn Itrator) -> Filter {
+    pub(crate) fn new<T: Itrator>(source: &'a mut impl Itrator) -> Filter {
         Filter {
             source
         }
