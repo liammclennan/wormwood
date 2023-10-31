@@ -68,6 +68,8 @@ function takeToSpace(input: string): string {
 }
 
 function takeFromSpace(input: string): string {
-    return input.slice(input.indexOf(' ') > 0 ? input.indexOf(' ') + 1: );
+    return input.slice(input.indexOf(' ') > 0 
+        ? input.indexOf(' ') + 1 
+        : input.length);
 }
 

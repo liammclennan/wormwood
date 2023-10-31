@@ -3,6 +3,8 @@ use crate::producer::Itrator;
 mod producer;
 mod filter;
 
+mod parser;
+
 fn main() {
     let path = "/Users/liammclennan/toydb/data/tablea.clef";
     let mut p = producer::Producer::new(path, vec!["@t".into(), "@mt".into()]);
