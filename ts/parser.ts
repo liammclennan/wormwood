@@ -19,11 +19,16 @@ export type Command = "SELECT" | "UPDATE";
 
 export type EqualityPredicate = [property: string, value: any];
 
+export type Direction = "ASC" | "DESC";
+
+export type OrderBy = [property: string, direction: Direction];
+
 export type Query = {
     command: Command;
     columns: string[];
     source: string;
     filter?: EqualityPredicate;
+    orderBy?: OrderBy;
 }
 
 function commandParser(q: string): [Command, string] {
@@ -55,12 +60,12 @@ function tableParser(q: string): [source: string, rest: string] {
     return [takeToSpace(q), takeFromSpace(q)];
 }
 
-function filterParser(q: string): EqualityPredicate | undefined {
+function filterParser(q: string): [EqualityPredicate | undefined, rest: string] {
     console.log('filter q', q);
     if (q.trim() === '') {
-        return;
+        return [undefined, q];
     }
-    return [q.split(" = ")[0], JSON.parse(q.split(" = ")[1])];
+    return [[q.split(" = ")[0], JSON.parse(q.split(" = ")[1])], rest of string];
 }
 
 function takeToSpace(input: string): string {
