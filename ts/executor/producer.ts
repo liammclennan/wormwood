@@ -10,7 +10,6 @@ export class Producer implements Iter {
     bufferIndex: number = 0;
     streamEnded: boolean = false;
 
-
     constructor(table: string, columns: string[]) {
         this.filePath = Path.join(__dirname, "../../data", `${table}.clef`);
         this.columns = columns;
@@ -39,7 +38,6 @@ export class Producer implements Iter {
 
         this.stream.on('end', () => {
             this.streamEnded = true;
-            console.log('stream ended');
         });
     }
 
@@ -55,18 +53,22 @@ export class Producer implements Iter {
                     this.stream?.resume();
                 }
                 if (this.streamEnded) {
-                    return "end of file" as RowMarker;
+                    return res("end of file" as RowMarker);
                 }
                 const i = setInterval(() => {
                     if (this.buffer.length > 1 && this.bufferIndex === 0) {
                         if (this.buffer[this.bufferIndex]) {
-                            res(this.makeRow(this.buffer[this.bufferIndex]));
                             clearInterval(i);
+                            return res(this.makeRow(this.buffer[this.bufferIndex]));
                         }
                     }
-                }, 1);
+                    else if (this.streamEnded) {
+                        clearInterval(i);
+                        return res("end of file" as RowMarker);
+                    }
+                }, 10);
             } else {
-                res(this.makeRow(this.buffer[this.bufferIndex-1]));
+                return res(this.makeRow(this.buffer[this.bufferIndex-1]));
             }
         });
     }
