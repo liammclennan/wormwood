@@ -6,7 +6,7 @@ prompt().then(()=>{});
 
 async function prompt() {
     const rl = readline.createInterface({ input, output });
-    const defaultQuery = `SELECT @t,@mt FROM tablea where @mt = "Queue is exhausted"`;
+    const defaultQuery = `SELECT @t,@mt FROM tablea where @mt = 'Queue is exhausted'`;
     while (true) {
         const text = (await rl.question(`Enter a query... (${defaultQuery})\n`)) || defaultQuery;
         const iter = evaluate(text);

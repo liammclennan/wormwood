@@ -12,7 +12,7 @@ export function plan(query: Query): Plan {
             name: "filter",
             columns: query.columns,
             property: query.filter[0],
-            value: query.filter[1],
+            value: JSON.parse(query.filter[1].replace(/'/g, '"')),
         };
         steps.push(filterStep);
     }

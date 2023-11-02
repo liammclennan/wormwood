@@ -5,7 +5,7 @@ export function parse(q: string): Query {
     var [source, rest] = tableParser(rest);
     console.log('source', source, 'rest', rest);
     rest = wordParser(rest); // WHERE
-    var filter = filterParser(rest);
+    var [filter,rest] = filterParser(rest);
 
     return {
         command,
@@ -61,11 +61,13 @@ function tableParser(q: string): [source: string, rest: string] {
 }
 
 function filterParser(q: string): [EqualityPredicate | undefined, rest: string] {
-    console.log('filter q', q);
     if (q.trim() === '') {
         return [undefined, q];
     }
-    return [[q.split(" = ")[0], JSON.parse(q.split(" = ")[1])], rest of string];
+    const matches = /([^\s]+)\s*=\s*(.+)/g.exec(q.trim());
+    let [property,r] = matches && matches.length > 2 ? [matches[1],matches[2]] : ["",q];
+    let split = r.split("ORDER BY");
+    return [[property, split[0]], split.length > 1 ? split[1] : "" ];
 }
 
 function takeToSpace(input: string): string {
