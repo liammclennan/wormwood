@@ -10,7 +10,6 @@ export function execute(plan: Planner.Plan): Iter {
             case "filter": return new Filter(producer, step.columns, step.property, step.value);
         }
     });
-    console.log(stack);
     return stack.length > 0 ? stack.pop()! : {
         async next() {
             return "end of file" as RowMarker;
