@@ -3,7 +3,6 @@ export function parse(q: string): Query {
     var [fields, rest] = fieldsParser(rest);
     rest = wordParser(rest); // FROM
     var [source, rest] = tableParser(rest);
-    console.log('source', source, 'rest', rest);
     rest = wordParser(rest); // WHERE
     var [filter,rest] = filterParser(rest);
 
