@@ -58,15 +58,17 @@ function orderByParser(q: string): [OrderBy | undefined, string] {
     if (!/^ORDER BY/i.test(q)) {
         return [undefined, q];
     }
-    const property = takeToSpace(q);
-    let rest = takeFromSpace(q);
-    let direction = takeToSpace(rest);
-    rest = takeFromSpace(rest);
+
+    const matches = /order by ([^\s]+) (ASC|DESC)(.*)/ig.exec(q);
+
+    if (!matches) {
+        return [undefined, q];
+    }
 
     return [[
-        property,
-        direction as Direction
-    ], rest];
+        matches[1].trim(),
+        matches[2].trim() as Direction
+    ], matches[3].trim()];
 }
 
 function wordEater(q: string): string {
@@ -86,10 +88,16 @@ function filterParser(q: string): [EqualityPredicate | undefined, rest: string] 
     if (!/^WHERE/i.test(q) || q === '') {
         return [undefined, q];
     }
-    const matches = /([^\s]+)\s*=\s*(.+)/g.exec(q.trim());
-    let [property,r] = matches && matches.length > 2 ? [matches[1],matches[2]] : ["",q];
-    let split = r.split("ORDER BY");
-    return [[property, split[0]], split.length > 1 ? split[1] : "" ];
+    const matches = /([^\s]+)\s*=\s*(.+?)(ORDER BY .*|$)/ig.exec(q.trim());
+    let [property,val,rest] = matches && matches.length > 2 
+        ? [matches[1],matches[2].trim(),matches.length > 3 
+            ? matches[3].trim() 
+            : ""] 
+        : ["",q];
+    
+    const result = [[property, val] as EqualityPredicate, rest ] as [ EqualityPredicate | undefined, string ];
+    console.log(result);
+    return result;
 }
 
 function takeToSpace(input: string): string {

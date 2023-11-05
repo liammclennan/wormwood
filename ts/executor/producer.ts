@@ -11,7 +11,7 @@ export class Producer implements Iter {
     streamEnded: boolean = false;
 
     constructor(table: string, columns: string[]) {
-        this.filePath = Path.join(__dirname, "../../data", `${table}.clef`);
+        this.filePath = Path.join(__dirname, "../../../data", `${table}.clef`);
         this.columns = columns;
     }
 

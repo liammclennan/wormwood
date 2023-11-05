@@ -5,6 +5,7 @@ import * as Executor from "./executor/executor";
 export function evaluate(input: string) {
     const query = Parser.parse(input);
     const plan = Planner.plan(query);
+    console.log('plan', plan);
     const iter = Executor.execute(plan);
     return iter;
 }
