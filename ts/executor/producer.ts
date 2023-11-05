@@ -24,20 +24,23 @@ export class Producer implements Iter {
             console.log(`error: ${error.message}`);
         })
 
-        this.stream.on('data', (chunk: any) => {
-            let remnant = this.buffer.length && this.buffer[this.buffer.length -1] !== ''
-                ? this.buffer[this.buffer.length -1]
-                :
-                '';
-            this.buffer = (chunk as string).split('\n');
-            this.buffer[0] = remnant + this.buffer[0];
-            this.bufferIndex = 0;
-            this.stream.pause();
-        })
-
         this.stream.on('end', () => {
             this.streamEnded = true;
             fd.close();
+        });
+
+        return new Promise((res,_) => {
+            this.stream.on('data', (chunk: any) => {
+                let remnant = this.buffer.length && this.buffer[this.buffer.length -1] !== ''
+                    ? this.buffer[this.buffer.length -1]
+                    :
+                    '';
+                this.buffer = (chunk as string).split('\n');
+                this.buffer[0] = remnant + this.buffer[0];
+                this.bufferIndex = 0;
+                this.stream.pause();
+                res(0);
+            })
         });
     }
 
@@ -45,7 +48,7 @@ export class Producer implements Iter {
         this.bufferIndex += 1;
 
         return new Promise((res, _) => {
-            if (this.bufferIndex >= this.buffer.length) {
+            if (this.bufferIndex > this.buffer.length) {
                 if (this.buffer[this.bufferIndex-1] === '') {
                     this.buffer = [];
                     this.bufferIndex = 0;
@@ -79,6 +82,7 @@ export class Producer implements Iter {
             return this.columns.map((c) => parsed[c]);
         }
         catch (_) {
+            console.log(line);
             return "empty row";
         }
     }
