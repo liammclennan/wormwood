@@ -37,6 +37,7 @@ export class Producer implements Iter {
 
         this.stream.on('end', () => {
             this.streamEnded = true;
+            fd.close();
         });
     }
 

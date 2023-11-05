@@ -34,7 +34,7 @@ function commandParser(q: string): [Command, string] {
     const commandText = q.slice(0, q.indexOf(' '));
     const rest = q.slice(q.indexOf(' ') + 1, q.length);
 
-    switch (commandText) {
+    switch (commandText.toUpperCase()) {
         case "SELECT": return ["SELECT", rest];
         case "UPDATE": return ["UPDATE", rest];
         default: throw new Error(`Unknown command ${commandText}`);
