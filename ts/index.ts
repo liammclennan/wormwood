@@ -9,7 +9,7 @@ async function prompt() {
     const defaultQuery = `SELECT @t,@mt FROM tablea where @mt = 'Queue is exhausted'`;
     while (true) {
         const text = (await rl.question(`Enter a query... (${defaultQuery})\n`)) || defaultQuery;
-        const iter = evaluate(text);
+        const iter = await evaluate(text);
         while (true) {
             const next = await iter.next();
             if (next === "end of file") {

@@ -3,8 +3,9 @@ import {Producer,Iter,RowMarker} from "./producer";
 import {Filter} from "./filter";
 import {ProducerStep} from "../planner/planner";
 
-export function execute(plan: Planner.Plan): Iter {
+export async function execute(plan: Planner.Plan): Promise<Iter> {
     const producer = new Producer((plan[0] as ProducerStep).table, (plan[0] as ProducerStep).columns);
+    await producer.open();
     const stack = plan.slice(1).map((step) => {
         switch (step.name) {
             case "filter": return new Filter(producer, step.columns, step.property, step.value);

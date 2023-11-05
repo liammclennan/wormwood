@@ -13,7 +13,6 @@ export class Producer implements Iter {
     constructor(table: string, columns: string[]) {
         this.filePath = Path.join(__dirname, "../../data", `${table}.clef`);
         this.columns = columns;
-        this.open();
     }
 
     async open() {
@@ -73,14 +72,21 @@ export class Producer implements Iter {
         });
     }
 
-    makeRow(line: string): any[] {
-        const parsed = JSON.parse(line);
-        return this.columns.map((c) => parsed[c]);
+    makeRow(line: string): IterValue {
+        try {
+            const parsed = JSON.parse(line);
+            return this.columns.map((c) => parsed[c]);
+        }
+        catch (_) {
+            return "empty row";
+        }
     }
 }
 
 export interface Iter {
-    next(): Promise<any[] | RowMarker>;
+    next(): Promise<IterValue>;
 }
 
+export type Row = any[];
 export type RowMarker = "empty row" | "end of file";
+export type IterValue = Row | RowMarker;
