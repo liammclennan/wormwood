@@ -5,12 +5,14 @@ export function parse(q: string): Query {
     var [fields, rest] = fieldsParser(rest);
     var [source, rest] = tableParser(rest);
     var [filter,rest] = filterParser(rest);
+    var [orderBy, rest] = orderByParser(rest);
 
     return {
         command,
         columns: fields,
         source,
         filter,
+        orderBy,
     };
 }
 
@@ -50,6 +52,21 @@ function fieldsParser(q: string): [string[], string] {
         fieldsText.split(','),
         rest
     ];
+}
+
+function orderByParser(q: string): [OrderBy | undefined, string] {
+    if (!/^ORDER BY/i.test(q)) {
+        return [undefined, q];
+    }
+    const property = takeToSpace(q);
+    let rest = takeFromSpace(q);
+    let direction = takeToSpace(rest);
+    rest = takeFromSpace(rest);
+
+    return [[
+        property,
+        direction as Direction
+    ], rest];
 }
 
 function wordEater(q: string): string {

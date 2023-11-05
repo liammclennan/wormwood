@@ -15,7 +15,9 @@ async function prompt() {
             if (next === "end of file") {
                 break;
             }
-            console.log(next);
+            if (next !== "empty row") {
+                console.log(next);
+            }
         }
     }
 }

@@ -82,7 +82,6 @@ export class Producer implements Iter {
             return this.columns.map((c) => parsed[c]);
         }
         catch (_) {
-            console.log(line);
             return "empty row";
         }
     }
