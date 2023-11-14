@@ -1,7 +1,7 @@
 {
-  "name": "src",
-  "version": "1.0.0",
-  "description": "",
+  "name": "Wormwood",
+  "version": "0.0.1",
+  "description": "A database development experiment.",
   "main": "index.js",
   "scripts": {
     "start": "npx tsc && node build index.js",
@@ -9,9 +9,12 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.8.7",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2"
   }
 }
