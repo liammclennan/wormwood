@@ -95,8 +95,7 @@ function filterParser(q: string): [EqualityPredicate | undefined, rest: string] 
             : ""] 
         : ["",q];
     
-    const result = [[property, val] as EqualityPredicate, rest ] as [ EqualityPredicate | undefined, string ];
-    console.log(result);
+    const result = [[property, JSON.parse(val.replace(/'/g, '"'))] as EqualityPredicate, rest ] as [ EqualityPredicate | undefined, string ];
     return result;
 }
 

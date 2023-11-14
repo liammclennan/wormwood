@@ -1,6 +1,8 @@
 import * as chalk from 'chalk';
 import * as pkg from './package.json';
 
+export const defaultQuery = `SELECT @t,@mt FROM tablea where @mt = 'Queue is exhausted'`;
+
 export const style = {
     intro: chalk.blue,
     prompt: chalk.keyword('orange'),
@@ -12,6 +14,14 @@ export function intro() {
     console.log(style.intro(`${pkg.name}`));
     console.log(style.intro(`Version: ${pkg.version}`));
     console.log(style.intro(`${pkg.description}\n`));
+
+    console.log(style.example("Allowed syntax:\n"));
+    console.log(style.example("SELECT <columnName>[,<columnName>]"));
+    console.log(style.example("FROM <tableName>"));
+    console.log(style.example("[WHERE <columnName> = <constantValue>]"));
+    console.log(style.example("[ORDER BY <columnName>]\n"));
+
+    console.log(style.intro("Default query: ", style.example(defaultQuery)));
 }
 
 
