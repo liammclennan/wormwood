@@ -4,15 +4,15 @@ import {evaluate} from './query';
 import * as terminal from './terminal';
 
 terminal.intro();
-prompt().then(()=>{});
 
-async function prompt() {
+(async function prompt() {
     const rl = readline.createInterface({ input, output });
     while (true) {
         const text = 
-            (await rl.question(terminal.style.prompt(`\nEnter a query... \n`)))
+            (await rl.question(terminal.style.prompt(`\n> `)))
             || terminal.defaultQuery;
         const iter = await evaluate(text);
+        console.log('');
         while (true) {
             const next = await iter.next();
             if (next === "end of file") {
@@ -23,4 +23,4 @@ async function prompt() {
             }
         }
     }
-}
+})().then(()=>{});
