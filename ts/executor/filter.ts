@@ -19,7 +19,7 @@ export class Filter implements Iter
         const row = await this.source.next();
         switch (row) {
             case "end of file" as RowMarker: return row;
-            case "empty row" as RowMarker: return row;
+            case "empty row" as RowMarker: return this.next();
             default: return (
                 (row as any[])
                 // `this.property` not found then columns[-1] is `undefined`

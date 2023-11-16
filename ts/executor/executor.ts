@@ -2,6 +2,7 @@ import * as Planner from "../planner/planner";
 import {Producer,Iter,RowMarker} from "./producer";
 import {Filter} from "./filter";
 import {ProducerStep} from "../planner/planner";
+import { OrderBy } from "./orderby";
 
 export async function execute(plan: Planner.Plan): Promise<Iter> {
     let producer;
@@ -16,6 +17,11 @@ export async function execute(plan: Planner.Plan): Promise<Iter> {
             case "filter": {
                 const producer = stk[0];
                 stk.push(new Filter(producer, step.columns, step.property, step.value));
+                return stk;
+            }
+            case "orderby": {
+                const source = stk[stk.length - 1];
+                stk.push(new OrderBy(source, step));
                 return stk;
             }
         }

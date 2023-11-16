@@ -1,20 +1,8 @@
 import { assert } from "./assert";
 
-export function parse(q: string): Query {
-    var [command, rest] = commandParser(q);
-    var [fields, rest] = fieldsParser(rest);
-    var [source, rest] = tableParser(rest);
-    var [filter,rest] = filterParser(rest);
-    var [orderBy, rest] = orderByParser(rest);
-
-    return {
-        command,
-        columns: fields,
-        source,
-        filter,
-        orderBy,
-    };
-}
+/**
+ * Convert a string query to the corresponding `Query` object.
+ */
 
 export type Command = "SELECT" | "UPDATE";
 
@@ -30,6 +18,22 @@ export type Query = {
     source: string;
     filter?: EqualityPredicate;
     orderBy?: OrderBy;
+}
+
+export function parse(q: string): Query {
+    var [command, rest] = commandParser(q);
+    var [fields, rest] = fieldsParser(rest);
+    var [source, rest] = tableParser(rest);
+    var [filter,rest] = filterParser(rest);
+    var [orderBy, rest] = orderByParser(rest);
+
+    return {
+        command,
+        columns: fields,
+        source,
+        filter,
+        orderBy,
+    };
 }
 
 function commandParser(q: string): [Command, string] {
@@ -52,27 +56,6 @@ function fieldsParser(q: string): [string[], string] {
         fieldsText.split(','),
         rest
     ];
-}
-
-function orderByParser(q: string): [OrderBy | undefined, string] {
-    if (!/^ORDER BY/i.test(q)) {
-        return [undefined, q];
-    }
-
-    const matches = /order by ([^\s]+) (ASC|DESC)(.*)/ig.exec(q);
-
-    if (!matches) {
-        return [undefined, q];
-    }
-
-    return [[
-        matches[1].trim(),
-        matches[2].trim() as Direction
-    ], matches[3].trim()];
-}
-
-function wordEater(q: string): string {
-    return takeFromSpace(q).trim();
 }
 
 function tableParser(q: string): [source: string, rest: string] {
@@ -99,6 +82,23 @@ function filterParser(q: string): [EqualityPredicate | undefined, rest: string] 
     return result;
 }
 
+function orderByParser(q: string): [OrderBy | undefined, string] {
+    if (!/^ORDER BY/i.test(q)) {
+        return [undefined, q];
+    }
+
+    const matches = /order by ([^\s]+) (ASC|DESC)(.*)/ig.exec(q);
+
+    if (!matches) {
+        return [undefined, q];
+    }
+
+    return [[
+        matches[1].trim(),
+        matches[2].trim() as Direction
+    ], matches[3].trim()];
+}
+
 function takeToSpace(input: string): string {
     return input.slice(0, input.indexOf(' ') > 0 ? input.indexOf(' ') : input.length).trim();
 }
@@ -107,5 +107,9 @@ function takeFromSpace(input: string): string {
     return input.slice(input.indexOf(' ') > 0 
         ? input.indexOf(' ') + 1 
         : input.length).trim();
+}
+
+function wordEater(q: string): string {
+    return takeFromSpace(q).trim();
 }
 

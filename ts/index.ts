@@ -11,6 +11,7 @@ terminal.intro();
         const text = 
             (await rl.question(terminal.style.prompt(`\n> `)))
             || terminal.defaultQuery;
+        console.time("query evaluation");
         const iter = await evaluate(text);
         console.log('');
         while (true) {
@@ -22,5 +23,6 @@ terminal.intro();
                 console.log(next);
             }
         }
+        console.timeEnd("query evaluation");
     }
 })().then(()=>{});
