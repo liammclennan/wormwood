@@ -26,9 +26,11 @@ export class OrderBy implements Iter
                 let bVal = (b as any[])[this.step.columns.indexOf(this.step.property)];
 
                 // sort backwards so results can pop
-                if (aVal > bVal && this.step.direction === "ASC") return -1;
-                if (aVal < bVal) return 1;
-                return 0;
+                return (aVal > bVal 
+                    ? -1 
+                    : aVal < bVal 
+                        ? 1
+                        : 0) * (this.step.direction == "DESC" ? -1 : 1);
             });
             this.sorted = rows;
         }
