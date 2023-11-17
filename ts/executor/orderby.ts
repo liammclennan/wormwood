@@ -30,7 +30,7 @@ export class OrderBy implements Iter
                     ? -1 
                     : aVal < bVal 
                         ? 1
-                        : 0) * (this.step.direction == "DESC" ? -1 : 1);
+                        : 0) * (this.step.direction.toUpperCase() == "DESC" ? -1 : 1);
             });
             this.sorted = rows;
         }

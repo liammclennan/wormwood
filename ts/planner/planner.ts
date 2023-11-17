@@ -11,7 +11,7 @@ import {Direction, Query} from "../parser";
 
 export type Plan = Step[];
 
-export type Step = ProducerStep | FilterStep | OrderByStep;
+export type Step = ProducerStep | FilterStep | OrderByStep | MeanStep;
 
 export type ProducerStep = {
     name: "producer",
@@ -26,6 +26,11 @@ export type FilterStep = {
     value: any,
 }
 
+export type MeanStep = {
+    name: "mean",
+    column: string,    
+}
+
 export type OrderByStep = {
     name: "orderby",
     columns: string[],
@@ -34,6 +39,10 @@ export type OrderByStep = {
 }
 
 export function plan(query: Query): Plan {
+    if (query.columns.length === 0) {
+        throw new Error("A query must include at least one column");
+    }
+
     // every SELECT query needs a producer
     const producerStep: ProducerStep = {
         name: "producer",
@@ -44,6 +53,10 @@ export function plan(query: Query): Plan {
     let steps: Step[] = [producerStep];
     
     if (query.filter) {
+        if (!query.columns.includes(query.filter[0])) {
+            throw new Error(`Query must include the filter column. E.g. 'SELECT ${query.filter[0]},${query.columns.join(",")} FROM ...'`);
+        }
+
         let filterStep: FilterStep = {
             name: "filter",
             columns: query.columns,
@@ -53,7 +66,22 @@ export function plan(query: Query): Plan {
         steps.push(filterStep);
     }
 
+    if (query.aggregation === "MEAN") {
+        let meanStep: MeanStep = {
+            name: "mean",
+            column: query.columns[0],
+        };
+        steps.push(meanStep);
+    }
+
     if (query.orderBy) {
+        if (!query.columns.includes(query.orderBy[0])) {
+            throw new Error(`Query must include the filter column. E.g. 'SELECT ${query.orderBy[0]},${query.columns.join(",")} FROM ...'`);
+        }
+        if (query.aggregation) {
+            throw new Error("Order by is not supported with aggregations");
+        }
+
         let orderStep: OrderByStep = {
             name: "orderby",
             columns: query.columns,

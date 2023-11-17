@@ -3,7 +3,7 @@ import {clearInterval} from "timers";
 import * as Path from "node:path";
 
 export class Producer implements Iter {
-    filePath: string;
+    public filePath: string;
     columns: string[];
     buffer: string[] = [];
     stream: any; 
@@ -16,7 +16,12 @@ export class Producer implements Iter {
     }
 
     async open() {
-        const fd = await fs.open(this.filePath);
+        let fd;
+        try {
+            fd = await fs.open(this.filePath);
+        } catch {
+            throw new Error("Failed to open database file for source " + this.filePath);
+        }
         this.stream = fd.createReadStream({
             encoding:'utf8',
         });

@@ -12,7 +12,16 @@ terminal.intro();
             (await rl.question(terminal.style.prompt(`\n> `)))
             || terminal.defaultQuery;
         console.time("query evaluation");
-        const iter = await evaluate(text);
+    
+        let iter;
+        try {
+            iter = await evaluate(text);
+        } catch (e) {
+            console.error(e.message);
+            console.timeEnd("query evaluation");
+            continue;
+        }
+
         console.log('');
         while (true) {
             const next = await iter.next();

@@ -12,17 +12,20 @@ export type Direction = "ASC" | "DESC";
 
 export type OrderBy = [property: string, direction: Direction];
 
+export type Aggregation = "MEAN";
+
 export type Query = {
     command: Command;
     columns: string[];
     source: string;
+    aggregation?: Aggregation;
     filter?: EqualityPredicate;
     orderBy?: OrderBy;
 }
 
 export function parse(q: string): Query {
     var [command, rest] = commandParser(q);
-    var [fields, rest] = fieldsParser(rest);
+    var [fields, aggregation, rest] = fieldsParser(rest);
     var [source, rest] = tableParser(rest);
     var [filter,rest] = filterParser(rest);
     var [orderBy, rest] = orderByParser(rest);
@@ -31,6 +34,7 @@ export function parse(q: string): Query {
         command,
         columns: fields,
         source,
+        aggregation,
         filter,
         orderBy,
     };
@@ -47,13 +51,22 @@ function commandParser(q: string): [Command, string] {
     }
 }
 
-function fieldsParser(q: string): [string[], string] {
-    assert(!/^FROM/i.test(q), "Query does not request any fields"); 
+function fieldsParser(q: string): [string[], Aggregation, string] {
+    assert(!/^FROM/i.test(q), "Query does not request any fields");
+
+    const matches =/mean ([^\s]+)\s*(FROM .*|$)/ig.exec(q.trim());
+    if (matches) {
+        let [_, column, remaining] = matches;
+        assert(column.indexOf(',') === -1, "Mean aggregation queries may only include one column");
+        return [[column], "MEAN", remaining];
+    }
+
     const fieldsText = q.slice(0, q.indexOf(' '));
     const rest = q.slice(q.indexOf(' ') + 1, q.length);
 
     return [
         fieldsText.split(','),
+        undefined,
         rest
     ];
 }
