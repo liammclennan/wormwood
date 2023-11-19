@@ -4,20 +4,25 @@ import {Filter} from "./filter";
 import {ProducerStep} from "../planner/planner";
 import { OrderBy } from "./orderby";
 import { StoredProcedure } from "../parser";
+import { Mean } from "./mean";
 
 export async function runQuery(plan: Planner.Plan): Promise<Iter> {
     let producer;
     const stack = plan.reduce((stk, step) => {
         switch (step.name) {
             case "producer": { 
-                const table = (plan[0] as ProducerStep).table;
-                producer = new Producer(table, (step as ProducerStep).columns);
+                const table = step.table;
+                producer = new Producer(table, step.columns);
                 stk.push(producer as Iter);
                 return stk; 
             }
             case "filter": {
                 const producer = stk[0];
-                stk.push(new Filter(producer, step.columns, step.property, step.value));
+                stk.push(new Filter(producer, step));
+                return stk;
+            }
+            case "mean": {
+                stk.push(new Mean(stk[stk.length - 1], step));
                 return stk;
             }
             case "orderby": {
