@@ -1,25 +1,19 @@
 import { assert } from "./assert";
 
 /**
- * Convert a string query to the corresponding `Query` object.
+ * Convert a string query to the corresponding `Command` object.
  */
 
 export type Command = Query | StoredProcedure;
 
+// sp_<name>(<param>[,<param>])
 export type StoredProcedure = {
     type: "stored procedure";
     name: string;
     params: string[];
 };
 
-export type EqualityPredicate = [property: string, value: any];
-
-export type Direction = "ASC" | "DESC";
-
-export type OrderBy = [property: string, direction: Direction];
-
-export type Aggregation = "MEAN";
-
+// SELECT ...
 export type Query = {
     type: "query";
     columns: string[];
@@ -29,12 +23,36 @@ export type Query = {
     orderBy?: OrderBy;
 }
 
+export type EqualityPredicate = [property: string, value: any];
+
+export type Direction = "ASC" | "DESC";
+
+export type OrderBy = [property: string, direction: Direction];
+
+export type Aggregation = "MEAN";
+
 export function parse(q: string): Command {
-    var [storedProcedure, rest] = spParser(q.trim());
-    if (storedProcedure) {
-        return storedProcedure;
+    const storedProcedure = spParser(q.trim());
+    return storedProcedure ?? queryParser(q.trim());
+}
+
+function spParser(q: string): StoredProcedure {
+    if (q.startsWith('sp_')) {
+        const matches = /sp_([^\s]+)\(([^\s]+)\)(.*)/ig.exec(q.trim());
+        if (matches) {
+            let [_, name, param, rest] = matches;
+            return {
+                type: "stored procedure",
+                name,
+                params: param.split(","),
+            };
+        }
     }
-    var [fields, aggregation, rest] = fieldsParser(rest);
+    return undefined;
+}
+
+function queryParser(q: string): Query {
+    var [fields, aggregation, rest] = fieldsParser(q);
     var [source, rest] = tableParser(rest);
     var [filter,rest] = filterParser(rest);
     var [orderBy, rest] = orderByParser(rest);
@@ -47,21 +65,6 @@ export function parse(q: string): Command {
         filter,
         orderBy,
     };
-}
-
-function spParser(q: string): [StoredProcedure, string] {
-    if (q.trim().startsWith('sp_')) {
-        const matches = /sp_([^\s]+)\(([^\s]+)\)(.*)/ig.exec(q.trim());
-        if (matches) {
-            let [_, name, param, rest] = matches;
-            return [{
-                type: "stored procedure",
-                name,
-                params: param.split(","),
-            }, rest];
-        }
-    }
-    return [undefined, q];
 }
 
 function fieldsParser(q: string): [string[], Aggregation, string] {
