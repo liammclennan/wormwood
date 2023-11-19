@@ -19,9 +19,6 @@ terminal.intro();
             if (next === "end of file") {
                 break;
             }
-            if (next !== "empty row") {
-                console.log(next);
-            }
         }
         console.timeEnd("query evaluation");
     }

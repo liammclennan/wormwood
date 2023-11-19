@@ -44,10 +44,10 @@ export class Producer implements Iter {
         });
     }
 
-    async next(): Promise<any[] | RowMarker> {
+    async next(): Promise<IterValue> {
         this.bufferIndex += 1;
 
-        return new Promise((res, _) => {
+        return new Promise(async (res, _) => {
             if (this.bufferIndex > this.buffer.length) {
                 if (this.buffer[this.bufferIndex-1] === '') {
                     this.buffer = [];
@@ -58,11 +58,11 @@ export class Producer implements Iter {
                 if (this.streamEnded) {
                     return res("end of file" as RowMarker);
                 }
-                const i = setInterval(() => {
+                const i = setInterval(async () => {
                     if (this.buffer.length > 1 && this.bufferIndex === 0) {
                         if (this.buffer[this.bufferIndex]) {
                             clearInterval(i);
-                            return res(this.makeRow(this.buffer[this.bufferIndex]));
+                            return res(this.makeRow(this.buffer[this.bufferIndex]) ?? await this.next());
                         }
                     }
                     else if (this.streamEnded) {
@@ -71,18 +71,18 @@ export class Producer implements Iter {
                     }
                 }, 10);
             } else {
-                return res(this.makeRow(this.buffer[this.bufferIndex-1]));
+                return res(this.makeRow(this.buffer[this.bufferIndex-1]) ?? await this.next());
             }
         });
     }
 
-    makeRow(line: string): IterValue {
+    makeRow(line: string): IterValue | undefined {
         try {
             const parsed = JSON.parse(line);
             return this.columns.map((c) => parsed[c]);
         }
         catch (_) {
-            return "empty row";
+            return undefined;
         }
     }
 }
@@ -91,6 +91,12 @@ export interface Iter {
     next(): Promise<IterValue>;
 }
 
+export const EmptyIter: Iter = {
+    next() {
+        return Promise.resolve("end of file");
+    }
+}
+
 export type Row = any[];
-export type RowMarker = "empty row" | "end of file";
+export type RowMarker = "end of file";
 export type IterValue = Row | RowMarker;

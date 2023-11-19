@@ -4,7 +4,13 @@ import { assert } from "./assert";
  * Convert a string query to the corresponding `Query` object.
  */
 
-export type Command = "SELECT" | "UPDATE";
+export type Command = Query | StoredProcedure;
+
+export type StoredProcedure = {
+    type: "stored procedure";
+    name: string;
+    params: string[];
+};
 
 export type EqualityPredicate = [property: string, value: any];
 
@@ -13,22 +19,25 @@ export type Direction = "ASC" | "DESC";
 export type OrderBy = [property: string, direction: Direction];
 
 export type Query = {
-    command: Command;
+    type: "query";
     columns: string[];
     source: string;
     filter?: EqualityPredicate;
     orderBy?: OrderBy;
 }
 
-export function parse(q: string): Query {
-    var [command, rest] = commandParser(q);
+export function parse(q: string): Command {
+    var [storedProcedure, rest] = spParser(q.trim());
+    if (storedProcedure) {
+        return storedProcedure;
+    }
     var [fields, rest] = fieldsParser(rest);
     var [source, rest] = tableParser(rest);
     var [filter,rest] = filterParser(rest);
     var [orderBy, rest] = orderByParser(rest);
 
     return {
-        command,
+        type: "query",
         columns: fields,
         source,
         filter,
@@ -36,18 +45,23 @@ export function parse(q: string): Query {
     };
 }
 
-function commandParser(q: string): [Command, string] {
-    const commandText = q.slice(0, q.indexOf(' '));
-    const rest = q.slice(q.indexOf(' ') + 1, q.length);
-
-    switch (commandText.toUpperCase()) {
-        case "SELECT": return ["SELECT", rest.trim()];
-        case "UPDATE": return ["UPDATE", rest.trim()];
-        default: throw new Error(`Unknown command ${commandText}`);
+function spParser(q: string): [StoredProcedure, string] {
+    if (q.trim().startsWith('sp_')) {
+        const matches = /sp_([^\s]+)\(([^\s]+)\)(.*)/ig.exec(q.trim());
+        if (matches) {
+            let [_, name, param, rest] = matches;
+            return [{
+                type: "stored procedure",
+                name,
+                params: param.split(","),
+            }, rest];
+        }
     }
+    return [undefined, q];
 }
 
 function fieldsParser(q: string): [string[], string] {
+    q = wordEater(q);
     assert(!/^FROM/i.test(q), "Query does not request any fields"); 
     const fieldsText = q.slice(0, q.indexOf(' '));
     const rest = q.slice(q.indexOf(' ') + 1, q.length);

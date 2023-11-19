@@ -3,8 +3,9 @@ import {Producer,Iter,RowMarker} from "./producer";
 import {Filter} from "./filter";
 import {ProducerStep} from "../planner/planner";
 import { OrderBy } from "./orderby";
+import { StoredProcedure } from "../parser";
 
-export async function execute(plan: Planner.Plan): Promise<Iter> {
+export async function runQuery(plan: Planner.Plan): Promise<Iter> {
     let producer;
     const stack = plan.reduce((stk, step) => {
         switch (step.name) {
@@ -35,3 +36,28 @@ export async function execute(plan: Planner.Plan): Promise<Iter> {
         }
     } as Iter;
 }
+
+export async function runStoredProcedure(command: StoredProcedure) {
+    let ix = {};
+    switch (command.name) {
+        case "createIndex": {
+            let [source, property] = command.params;
+            let iter = await runQuery([ {
+                name: "producer",
+                table: source,
+                columns: [property],
+            } ]);
+            
+            let rowIx = 0;
+            const row = await iter.next();
+            while (row != "end of file") {
+                if (row[0]) {
+                    let vals = ix[row[0]] ?? [];
+                    vals.push(rowIx);
+                    ix[row[0]] = vals;
+                }
+            }
+        }
+    }
+}
+
