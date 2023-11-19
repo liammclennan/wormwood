@@ -1,5 +1,5 @@
 import { MeanStep } from "../planner/planner";
-import {Iter, Row, RowMarker} from "./producer";
+import {Iter, Row, EndOfFile} from "./producer";
 
 export class Mean implements Iter
 {
@@ -11,7 +11,7 @@ export class Mean implements Iter
         this.source = source;
     }
 
-    async next(): Promise<Row | RowMarker> {
+    async next(): Promise<Row | EndOfFile> {
         if (this.count > 0) {
             return "end of file";
         }

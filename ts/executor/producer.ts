@@ -61,7 +61,7 @@ export class Producer implements Iter {
                     this.stream?.resume();
                 }
                 if (this.streamEnded) {
-                    return res("end of file" as RowMarker);
+                    return res("end of file" as EndOfFile);
                 }
                 const i = setInterval(async () => {
                     if (this.buffer.length > 1 && this.bufferIndex === 0) {
@@ -72,11 +72,12 @@ export class Producer implements Iter {
                     }
                     else if (this.streamEnded) {
                         clearInterval(i);
-                        return res("end of file" as RowMarker);
+                        return res("end of file" as EndOfFile);
                     }
                 }, 10);
             } else {
-                return res(this.makeRow(this.buffer[this.bufferIndex-1]) ?? await this.next());
+                let o = this.makeRow(this.buffer[this.bufferIndex-1]) ?? await this.next();
+                return res(o);
             }
         });
     }
@@ -103,5 +104,5 @@ export const EmptyIter: Iter = {
 }
 
 export type Row = any[];
-export type RowMarker = "end of file";
-export type IterValue = Row | RowMarker;
+export type EndOfFile = "end of file";
+export type IterValue = Row | EndOfFile;

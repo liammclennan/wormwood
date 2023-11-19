@@ -1,4 +1,4 @@
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import * as pkg from './package.json';
 
 export const defaultQuery = `SELECT @t,@mt FROM tablea where @mt = 'Queue is exhausted'`;

@@ -28,6 +28,7 @@ terminal.intro();
             if (next === "end of file") {
                 break;
             }
+            console.log(next);
         }
         console.timeEnd("query evaluation");
     }

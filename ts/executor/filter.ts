@@ -1,5 +1,6 @@
+import { assert } from "../assert";
 import { FilterStep } from "../planner/planner";
-import {Iter, Row, RowMarker} from "./producer";
+import {Iter, Row, EndOfFile} from "./producer";
 
 export class Filter implements Iter
 {
@@ -9,18 +10,18 @@ export class Filter implements Iter
     private columns: string[];
 
     constructor(source: Iter, filterStep: FilterStep) {
-        console.assert(filterStep.columns.length > 0, "No columns specified");
+        assert(filterStep.columns.length > 0, "No columns specified");
         this.source = source;
         this.property = filterStep.property;
         this.value = filterStep.value;
         this.columns = filterStep.columns;
     }
 
-    async next(): Promise<Row | RowMarker> {
+    async next(): Promise<Row | EndOfFile> {
         const row = await this.source.next();
+
         switch (row) {
-            case "end of file" as RowMarker: return row;
-            case "empty row" as RowMarker: return this.next();
+            case "end of file" as EndOfFile: return row;
             default: return (
                 (row as Row)
                 // `this.property` not found then columns[-1] is `undefined`

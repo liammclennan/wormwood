@@ -1,7 +1,6 @@
 import * as Planner from "../planner/planner";
-import {Producer,Iter,RowMarker} from "./producer";
+import {Producer,Iter,EndOfFile} from "./producer";
 import {Filter} from "./filter";
-import {ProducerStep} from "../planner/planner";
 import { OrderBy } from "./orderby";
 import { StoredProcedure } from "../parser";
 import { Mean } from "./mean";
@@ -37,7 +36,7 @@ export async function runQuery(plan: Planner.Plan): Promise<Iter> {
 
     return stack.length > 0 ? stack.pop()! : {
         async next() {
-            return "end of file" as RowMarker;
+            return "end of file" as EndOfFile;
         }
     } as Iter;
 }

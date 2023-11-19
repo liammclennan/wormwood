@@ -1,5 +1,5 @@
 import { OrderByStep } from "../planner/planner";
-import {Iter, Row, RowMarker} from "./producer";
+import {Iter, Row, EndOfFile} from "./producer";
 
 export class OrderBy implements Iter
 {
@@ -13,7 +13,7 @@ export class OrderBy implements Iter
         this.step = orderBy;
     }
 
-    async next(): Promise<Row | RowMarker> {
+    async next(): Promise<Row | EndOfFile> {
         if (!this.sorted) {
             const rows = [];
             let row = await this.source.next();
