@@ -89,7 +89,7 @@ export async function plan(command: Command): Promise<Plan> {
                 if (index) {
                     producerStep.lines = index.lookup[value.toString()];
                 }
-        
+
                 let filterStep: FilterStep = {
                     name: "filter",
                     columns: command.columns,
