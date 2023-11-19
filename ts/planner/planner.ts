@@ -1,5 +1,4 @@
 import * as fs from "node:fs/promises";
-import * as Path from "node:path";
 import {Command, Direction} from "../parser";
 import { indexPath } from "../executor/indexer";
 
@@ -18,7 +17,7 @@ export type Step = ProducerStep | FilterStep | OrderByStep | MeanStep | CreateIn
 
 export type ProducerStep = {
     name: "producer",
-    table: string,
+    source: string,
     columns: string[],
     lines?: number[],
 }
@@ -74,7 +73,7 @@ export async function plan(command: Command): Promise<Plan> {
             // every SELECT query needs a producer
             const producerStep: ProducerStep = {
                 name: "producer",
-                table: command.source,
+                source: command.source,
                 columns: command.columns,
             };
         

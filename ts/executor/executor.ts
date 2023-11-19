@@ -10,8 +10,7 @@ export async function run(plan: Planner.Plan): Promise<Iter> {
     const stack = plan.reduce((stk, step) => {
         switch (step.name) {
             case "producer": { 
-                const table = step.table;
-                producer = new Producer(table, step);
+                producer = new Producer(step);
                 stk.push(producer as Iter);
                 return stk; 
             }
@@ -32,7 +31,7 @@ export async function run(plan: Planner.Plan): Promise<Iter> {
             case "createindex": {
                 let iterFactory = () => run([{
                     name: "producer",
-                    table: step.source,
+                    source: step.source,
                     columns: [step.property],
                 }]);
                 stk.push(new Indexer(iterFactory, step));

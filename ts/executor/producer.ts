@@ -1,116 +1,91 @@
 import * as fs from "node:fs/promises";
-import {clearInterval} from "timers";
 import * as Path from "node:path";
-import { ProducerStep, PropertyEqualityIndex } from "../planner/planner";
+
+import { createInterface } from "node:readline";
+import { ProducerStep } from "../planner/planner";
 
 export class Producer implements Iter {
-    public readonly filePath: string;
-    readonly columns: string[];
-    buffer: string[] = [];
-    stream: any; 
+    readonly filePath: string;
+    lineBuffer: string[] = [];
     bufferIndex: number = 0;
+    stream: any; 
     streamEnded: boolean = false;
-    readonly lines: number[];
-    rowIx: number = 0;
+    columns: string[];
+    lineNumbers: number[];
 
-    constructor(table: string, step: ProducerStep) {
-        this.filePath = Path.join(__dirname, "../../../data", `${table}.clef`);
+    constructor(step: ProducerStep) {
+        this.filePath = Path.join(__dirname, "../../../data", `${step.source}.clef`);
         this.columns = step.columns;
-        this.lines = step.lines;
-    }
-
-    async open() {
-        let fd;
-        try {
-            fd = await fs.open(this.filePath);
-        } catch {
-            throw new Error("Failed to open database file for source " + this.filePath);
-        }
-        this.stream = fd.createReadStream({
-            encoding:'utf8',
-        });
-        this.stream.on('error', function (error: any) {
-            console.log(`error: ${error.message}`);
-        })
-
-        this.stream.on('end', () => {
-            this.streamEnded = true;
-            fd.close();
-        });
-
-        return new Promise((res,_) => {
-            this.stream.on('data', (chunk: any) => {
-                let remnant = this.buffer.length && this.buffer[this.buffer.length -1] !== ''
-                    ? this.buffer[this.buffer.length -1]
-                    :
-                    '';
-                this.buffer = (chunk as string).split('\n');
-                this.buffer[0] = remnant + this.buffer[0];
-                this.bufferIndex = 0;
-                this.stream.pause();
-                res(0);
-            })
-        });
+        this.lineNumbers = step.lines;
     }
 
     async next(): Promise<IterValue> {
         if (!this.stream) {
-            await this.open();
+            let fd;
+            try {
+                fd = await fs.open(this.filePath);
+            } catch {
+                throw new Error("Failed to open database file for source " + this.filePath);
+            }
+            this.stream = fd.createReadStream({
+                encoding:'utf8',
+            });
+            const lineReader = createInterface({
+                input: this.stream,
+                output: process.stdout,
+                terminal: false,
+              });
+
+              lineReader.on('line', (line) => {
+                this.lineBuffer.push(line);
+              });
+
+              this.stream.on('error', function (error: any) {
+                console.log(`error: ${error.message}`);
+            });
+    
+            this.stream.on('end', () => {
+                this.streamEnded = true;
+                fd.close();
+            });
         }
 
-        this.bufferIndex += 1;
+        if (this.streamEnded && this.bufferIndex >= (this.lineBuffer.length)) {
+            return "end of file";
+        }
 
-        return new Promise(async (res, _) => {
-            if (this.bufferIndex > this.buffer.length) {
-                if (this.buffer[this.bufferIndex-1] === '') {
-                    this.buffer = [];
-                    this.bufferIndex = 0;
-                } else {
-                    this.stream?.resume();
-                }
-                if (this.streamEnded) {
-                    return res("end of file" as EndOfFile);
-                }
-                const i = setInterval(async () => {
-                    if (this.buffer.length > 1 && this.bufferIndex === 0) {
-                        if (this.buffer[this.bufferIndex]) {
-                            clearInterval(i);
-                            return res(this.makeRow(this.buffer[this.bufferIndex]) ?? await this.next());
-                        }
-                    }
-                    else if (this.streamEnded) {
-                        clearInterval(i);
-                        return res("end of file" as EndOfFile);
-                    }
+        if (this.lineBuffer.length > this.bufferIndex) {
+            let line = this.lineBuffer[this.bufferIndex];
+            let result = this.lineNumbers && this.lineNumbers.find((i) => i === this.bufferIndex)
+                ? this.makeRow(line)
+                : this.lineNumbers 
+                    ? []
+                    : this.makeRow(line);
+            this.bufferIndex += 1;
+            return result;
+        } else {
+            return new Promise((res,rej) => {
+                setTimeout(() => {
+                    res(this.next())
                 }, 10);
-            } else {
-                let o = this.makeRow(this.buffer[this.bufferIndex-1]) ?? await this.next();
-                return res(o);
-            }
-        });
+            });
+        }
     }
 
     makeRow(line: string): IterValue | undefined {
         try {
             const parsed = JSON.parse(line);
             let value = this.columns.map((c) => parsed[c]);
-            this.rowIx += 1;
             return value;
         }
         catch (_) {
-            return undefined;
+            return [];
         }
     }
 }
 
 export interface Iter {
     next(): Promise<IterValue>;
-}
-
-export const EmptyIter: Iter = {
-    next() {
-        return Promise.resolve("end of file");
-    }
 }
 
 export type Row = any[];
