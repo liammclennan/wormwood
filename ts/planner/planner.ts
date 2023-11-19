@@ -1,3 +1,4 @@
+import { Query, StoredProcedure } from './../parser';
 import * as fs from "node:fs/promises";
 import {Command, Direction} from "../parser";
 import { indexPath } from "../executor/indexer";
@@ -58,75 +59,83 @@ export type PropertyEqualityIndex = {
 export async function plan(command: Command): Promise<Plan> {
     switch (command.type) {
         case "stored procedure": {
-            let indexStep: CreateIndexStep = {
-                name: "createindex",
-                source: command.params[0],
-                property: command.params[1],
-            };
-            return Promise.resolve([indexStep]);
+            return createSpPlan(command);
         }
         case "query": {
-            if (command.columns.length === 0) {
-                throw new Error("A query must include at least one column");
-            }
-        
-            // every SELECT query needs a producer
-            const producerStep: ProducerStep = {
-                name: "producer",
-                source: command.source,
-                columns: command.columns,
-            };
-        
-            let steps: Step[] = [producerStep];
-            
-            if (command.filter) {
-                if (!command.columns.includes(command.filter[0])) {
-                    throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.filter[0]},${command.columns.join(",")} FROM ...'`);
-                }
-                let [property, value] = command.filter;
-                let index = await findIndex(command.source, property);
-
-                if (index) {
-                    producerStep.lines = index.lookup[value.toString()];
-                }
-
-                let filterStep: FilterStep = {
-                    name: "filter",
-                    columns: command.columns,
-                    property,
-                    value,
-                };
-                steps.push(filterStep);
-            }
-        
-            if (command.aggregation === "MEAN") {
-                let meanStep: MeanStep = {
-                    name: "mean",
-                    column: command.columns[0],
-                };
-                steps.push(meanStep);
-            }
-        
-            if (command.orderBy) {
-                if (!command.columns.includes(command.orderBy[0])) {
-                    throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.orderBy[0]},${command.columns.join(",")} FROM ...'`);
-                }
-                if (command.aggregation) {
-                    throw new Error("Order by is not supported with aggregations");
-                }
-        
-                let orderStep: OrderByStep = {
-                    name: "orderby",
-                    columns: command.columns,
-                    property: command.orderBy[0],
-                    direction: command.orderBy[1],
-                };
-                steps.push(orderStep);
-            }
-        
-            return Promise.resolve(steps);
+            return await createQueryPlan(command);
         }
     }    
+}
+
+function createSpPlan(sp: StoredProcedure) {
+    let indexStep: CreateIndexStep = {
+        name: "createindex",
+        source: sp.params[0],
+        property: sp.params[1],
+    };
+    return Promise.resolve([indexStep]);
+}
+
+async function createQueryPlan(command: Query) {
+    if (command.columns.length === 0) {
+        throw new Error("A query must include at least one column");
+    }
+
+    // every SELECT query needs a producer
+    const producerStep: ProducerStep = {
+        name: "producer",
+        source: command.source,
+        columns: command.columns,
+    };
+
+    let steps: Step[] = [producerStep];
+    
+    if (command.filter) {
+        if (!command.columns.includes(command.filter[0])) {
+            throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.filter[0]},${command.columns.join(",")} FROM ...'`);
+        }
+        let [property, value] = command.filter;
+        let index = await findIndex(command.source, property);
+
+        if (index) {
+            producerStep.lines = index.lookup[value.toString()];
+        }
+
+        let filterStep: FilterStep = {
+            name: "filter",
+            columns: command.columns,
+            property,
+            value,
+        };
+        steps.push(filterStep);
+    }
+
+    if (command.aggregation === "MEAN") {
+        let meanStep: MeanStep = {
+            name: "mean",
+            column: command.columns[0],
+        };
+        steps.push(meanStep);
+    }
+
+    if (command.orderBy) {
+        if (!command.columns.includes(command.orderBy[0])) {
+            throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.orderBy[0]},${command.columns.join(",")} FROM ...'`);
+        }
+        if (command.aggregation) {
+            throw new Error("Order by is not supported with aggregations");
+        }
+
+        let orderStep: OrderByStep = {
+            name: "orderby",
+            columns: command.columns,
+            property: command.orderBy[0],
+            direction: command.orderBy[1],
+        };
+        steps.push(orderStep);
+    }
+
+    return Promise.resolve(steps);
 }
 
 async function findIndex(source: string, property: string): Promise<PropertyEqualityIndex | undefined> {
