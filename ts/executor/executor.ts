@@ -1,3 +1,5 @@
+import * as fs from "node:fs/promises";
+import * as Path from "node:path";
 import * as Planner from "../planner/planner";
 import {Producer,Iter,EndOfFile} from "./producer";
 import {Filter} from "./filter";
@@ -53,14 +55,24 @@ export async function runStoredProcedure(command: StoredProcedure) {
             } ]);
             
             let rowIx = 0;
-            const row = await iter.next();
+            let row = await iter.next();
             while (row != "end of file") {
                 if (row[0]) {
                     let vals = ix[row[0]] ?? [];
                     vals.push(rowIx);
                     ix[row[0]] = vals;
                 }
+                rowIx += 1;
+                row = await iter.next();
             }
+            const ixFile = {
+                source,
+                property,
+                lookup: ix,
+            };
+            const filePath = Path.join(__dirname, "../../../data", `ix_${source}_${property}.index`);
+
+            await fs.writeFile(filePath, JSON.stringify(ixFile));
         }
     }
 }
