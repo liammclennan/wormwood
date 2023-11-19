@@ -11,7 +11,7 @@ export async function run(plan: Planner.Plan): Promise<Iter> {
         switch (step.name) {
             case "producer": { 
                 const table = step.table;
-                producer = new Producer(table, step.columns);
+                producer = new Producer(table, step);
                 stk.push(producer as Iter);
                 return stk; 
             }

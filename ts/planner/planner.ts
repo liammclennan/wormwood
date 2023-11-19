@@ -1,4 +1,7 @@
+import * as fs from "node:fs/promises";
+import * as Path from "node:path";
 import {Command, Direction} from "../parser";
+import { indexPath } from "../executor/indexer";
 
 /**
  * Convert a `Query` to a `Plan`.
@@ -17,6 +20,7 @@ export type ProducerStep = {
     name: "producer",
     table: string,
     columns: string[],
+    lines?: number[],
 }
 
 export type FilterStep = {
@@ -44,7 +48,15 @@ export type CreateIndexStep = {
     property: string;
 }
 
-export function plan(command: Command): Plan {
+export type PropertyEqualityIndex = {
+    source: string,
+    property: string,
+    lookup: {
+        [vals: string]: number[]
+    };
+}
+
+export async function plan(command: Command): Promise<Plan> {
     switch (command.type) {
         case "stored procedure": {
             let indexStep: CreateIndexStep = {
@@ -52,7 +64,7 @@ export function plan(command: Command): Plan {
                 source: command.params[0],
                 property: command.params[1],
             };
-            return [indexStep];
+            return Promise.resolve([indexStep]);
         }
         case "query": {
             if (command.columns.length === 0) {
@@ -72,12 +84,18 @@ export function plan(command: Command): Plan {
                 if (!command.columns.includes(command.filter[0])) {
                     throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.filter[0]},${command.columns.join(",")} FROM ...'`);
                 }
+                let [property, value] = command.filter;
+                let index = await findIndex(command.source, property);
+
+                if (index) {
+                    producerStep.lines = index.lookup[value.toString()];
+                }
         
                 let filterStep: FilterStep = {
                     name: "filter",
                     columns: command.columns,
-                    property: command.filter[0],
-                    value: command.filter[1],
+                    property,
+                    value,
                 };
                 steps.push(filterStep);
             }
@@ -107,7 +125,20 @@ export function plan(command: Command): Plan {
                 steps.push(orderStep);
             }
         
-            return steps;
+            return Promise.resolve(steps);
         }
     }    
+}
+
+async function findIndex(source: string, property: string): Promise<PropertyEqualityIndex | undefined> {
+    const filePath = indexPath(source, property);    
+    try {
+        let index = await fs.readFile(filePath, 'utf8');
+        if (index) {
+            return JSON.parse(index);
+        }
+    }
+    catch {
+        return undefined;
+    }        
 }

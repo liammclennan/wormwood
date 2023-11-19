@@ -1,18 +1,22 @@
 import * as fs from "node:fs/promises";
 import {clearInterval} from "timers";
 import * as Path from "node:path";
+import { ProducerStep, PropertyEqualityIndex } from "../planner/planner";
 
 export class Producer implements Iter {
-    public filePath: string;
-    columns: string[];
+    public readonly filePath: string;
+    readonly columns: string[];
     buffer: string[] = [];
     stream: any; 
     bufferIndex: number = 0;
     streamEnded: boolean = false;
+    readonly lines: number[];
+    rowIx: number = 0;
 
-    constructor(table: string, columns: string[]) {
+    constructor(table: string, step: ProducerStep) {
         this.filePath = Path.join(__dirname, "../../../data", `${table}.clef`);
-        this.columns = columns;
+        this.columns = step.columns;
+        this.lines = step.lines;
     }
 
     async open() {
@@ -53,6 +57,7 @@ export class Producer implements Iter {
         if (!this.stream) {
             await this.open();
         }
+
         this.bufferIndex += 1;
 
         return new Promise(async (res, _) => {
@@ -88,7 +93,9 @@ export class Producer implements Iter {
     makeRow(line: string): IterValue | undefined {
         try {
             const parsed = JSON.parse(line);
-            return this.columns.map((c) => parsed[c]);
+            let value = this.columns.map((c) => parsed[c]);
+            this.rowIx += 1;
+            return value;
         }
         catch (_) {
             return undefined;
