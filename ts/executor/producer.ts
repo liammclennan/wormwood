@@ -50,6 +50,9 @@ export class Producer implements Iter {
     }
 
     async next(): Promise<IterValue> {
+        if (!this.stream) {
+            await this.open();
+        }
         this.bufferIndex += 1;
 
         return new Promise(async (res, _) => {

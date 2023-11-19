@@ -1,4 +1,4 @@
-import {Direction, Query} from "../parser";
+import {Command, Direction} from "../parser";
 
 /**
  * Convert a `Query` to a `Plan`.
@@ -11,7 +11,7 @@ import {Direction, Query} from "../parser";
 
 export type Plan = Step[];
 
-export type Step = ProducerStep | FilterStep | OrderByStep | MeanStep;
+export type Step = ProducerStep | FilterStep | OrderByStep | MeanStep | CreateIndexStep;
 
 export type ProducerStep = {
     name: "producer",
@@ -38,58 +38,76 @@ export type OrderByStep = {
     direction: Direction,
 }
 
-export function plan(query: Query): Plan {
-    if (query.columns.length === 0) {
-        throw new Error("A query must include at least one column");
-    }
+export type CreateIndexStep = {
+    name: "createindex";
+    source: string;
+    property: string;
+}
 
-    // every SELECT query needs a producer
-    const producerStep: ProducerStep = {
-        name: "producer",
-        table: query.source,
-        columns: query.columns,
-    };
-
-    let steps: Step[] = [producerStep];
-    
-    if (query.filter) {
-        if (!query.columns.includes(query.filter[0])) {
-            throw new Error(`Query must include the filter column. E.g. 'SELECT ${query.filter[0]},${query.columns.join(",")} FROM ...'`);
+export function plan(command: Command): Plan {
+    switch (command.type) {
+        case "stored procedure": {
+            let indexStep: CreateIndexStep = {
+                name: "createindex",
+                source: command.params[0],
+                property: command.params[1],
+            };
+            return [indexStep];
         }
-
-        let filterStep: FilterStep = {
-            name: "filter",
-            columns: query.columns,
-            property: query.filter[0],
-            value: query.filter[1],
-        };
-        steps.push(filterStep);
-    }
-
-    if (query.aggregation === "MEAN") {
-        let meanStep: MeanStep = {
-            name: "mean",
-            column: query.columns[0],
-        };
-        steps.push(meanStep);
-    }
-
-    if (query.orderBy) {
-        if (!query.columns.includes(query.orderBy[0])) {
-            throw new Error(`Query must include the filter column. E.g. 'SELECT ${query.orderBy[0]},${query.columns.join(",")} FROM ...'`);
+        case "query": {
+            if (command.columns.length === 0) {
+                throw new Error("A query must include at least one column");
+            }
+        
+            // every SELECT query needs a producer
+            const producerStep: ProducerStep = {
+                name: "producer",
+                table: command.source,
+                columns: command.columns,
+            };
+        
+            let steps: Step[] = [producerStep];
+            
+            if (command.filter) {
+                if (!command.columns.includes(command.filter[0])) {
+                    throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.filter[0]},${command.columns.join(",")} FROM ...'`);
+                }
+        
+                let filterStep: FilterStep = {
+                    name: "filter",
+                    columns: command.columns,
+                    property: command.filter[0],
+                    value: command.filter[1],
+                };
+                steps.push(filterStep);
+            }
+        
+            if (command.aggregation === "MEAN") {
+                let meanStep: MeanStep = {
+                    name: "mean",
+                    column: command.columns[0],
+                };
+                steps.push(meanStep);
+            }
+        
+            if (command.orderBy) {
+                if (!command.columns.includes(command.orderBy[0])) {
+                    throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.orderBy[0]},${command.columns.join(",")} FROM ...'`);
+                }
+                if (command.aggregation) {
+                    throw new Error("Order by is not supported with aggregations");
+                }
+        
+                let orderStep: OrderByStep = {
+                    name: "orderby",
+                    columns: command.columns,
+                    property: command.orderBy[0],
+                    direction: command.orderBy[1],
+                };
+                steps.push(orderStep);
+            }
+        
+            return steps;
         }
-        if (query.aggregation) {
-            throw new Error("Order by is not supported with aggregations");
-        }
-
-        let orderStep: OrderByStep = {
-            name: "orderby",
-            columns: query.columns,
-            property: query.orderBy[0],
-            direction: query.orderBy[1],
-        };
-        steps.push(orderStep);
-    }
-
-    return steps;
+    }    
 }

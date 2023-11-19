@@ -1,13 +1,11 @@
-import * as fs from "node:fs/promises";
-import * as Path from "node:path";
 import * as Planner from "../planner/planner";
 import {Producer,Iter,EndOfFile} from "./producer";
 import {Filter} from "./filter";
 import { OrderBy } from "./orderby";
-import { StoredProcedure } from "../parser";
 import { Mean } from "./mean";
+import { Indexer } from "./indexer";
 
-export async function runQuery(plan: Planner.Plan): Promise<Iter> {
+export async function run(plan: Planner.Plan): Promise<Iter> {
     let producer;
     const stack = plan.reduce((stk, step) => {
         switch (step.name) {
@@ -31,10 +29,17 @@ export async function runQuery(plan: Planner.Plan): Promise<Iter> {
                 stk.push(new OrderBy(source, step));
                 return stk;
             }
+            case "createindex": {
+                let iterFactory = () => run([{
+                    name: "producer",
+                    table: step.source,
+                    columns: [step.property],
+                }]);
+                stk.push(new Indexer(iterFactory, step));
+                return stk;
+            }
         }
     }, [] as Iter[]);
-
-    await producer!.open();
 
     return stack.length > 0 ? stack.pop()! : {
         async next() {
@@ -42,38 +47,3 @@ export async function runQuery(plan: Planner.Plan): Promise<Iter> {
         }
     } as Iter;
 }
-
-export async function runStoredProcedure(command: StoredProcedure) {
-    let ix = {};
-    switch (command.name) {
-        case "createIndex": {
-            let [source, property] = command.params;
-            let iter = await runQuery([ {
-                name: "producer",
-                table: source,
-                columns: [property],
-            } ]);
-            
-            let rowIx = 0;
-            let row = await iter.next();
-            while (row != "end of file") {
-                if (row[0]) {
-                    let vals = ix[row[0]] ?? [];
-                    vals.push(rowIx);
-                    ix[row[0]] = vals;
-                }
-                rowIx += 1;
-                row = await iter.next();
-            }
-            const ixFile = {
-                source,
-                property,
-                lookup: ix,
-            };
-            const filePath = Path.join(__dirname, "../../../data", `ix_${source}_${property}.index`);
-
-            await fs.writeFile(filePath, JSON.stringify(ixFile));
-        }
-    }
-}
-
