@@ -8,7 +8,7 @@ export class Producer implements Iter {
     readonly filePath: string;
     lineBuffer: string[] = [];
     bufferIndex: number = 0;
-    stream: any; 
+    stream: any;
     streamEnded: boolean = false;
     columns: string[];
     lineNumbers: number[];
@@ -28,29 +28,29 @@ export class Producer implements Iter {
                 throw new Error("Failed to open database file for source " + this.filePath);
             }
             this.stream = fd.createReadStream({
-                encoding:'utf8',
+                encoding: 'utf8',
             });
             const lineReader = createInterface({
                 input: this.stream,
                 output: process.stdout,
                 terminal: false,
-              });
+            });
 
-              lineReader.on('line', (line) => {
+            lineReader.on('line', (line) => {
                 this.lineBuffer.push(line);
-              });
+            });
 
-              this.stream.on('error', function (error: any) {
+            this.stream.on('error', function (error: any) {
                 console.log(`error: ${error.message}`);
             });
-    
+
             this.stream.on('end', () => {
                 this.streamEnded = true;
                 fd.close();
             });
         }
 
-        if (this.streamEnded && this.bufferIndex >= (this.lineBuffer.length)) {
+        if (this.streamEnded && this.bufferIndex >= this.lineBuffer.length) {
             return "end of file";
         }
 
@@ -58,13 +58,13 @@ export class Producer implements Iter {
             let line = this.lineBuffer[this.bufferIndex];
             let result = this.lineNumbers && this.lineNumbers.find((i) => i === this.bufferIndex)
                 ? this.makeRow(line)
-                : this.lineNumbers 
+                : this.lineNumbers
                     ? []
                     : this.makeRow(line);
             this.bufferIndex += 1;
             return result;
         } else {
-            return new Promise((res,rej) => {
+            return new Promise((res, rej) => {
                 setTimeout(() => {
                     res(this.next())
                 }, 10);

@@ -8,7 +8,6 @@ export class Filter implements Iter
     private readonly property: string;
     private readonly value: any;
     private columns: string[];
-    private readonly indexed: boolean = false;
 
     constructor(source: Iter, filterStep: FilterStep) {
         assert(filterStep.columns.length > 0, "No columns specified");

@@ -9,6 +9,7 @@ export class Indexer implements Iter
     private indexSource: string;
     private property: string;
 
+    // iterFactory - function producing an iterator over a source
     constructor(iterFactory: () => Promise<Iter>, indexStep: CreateIndexStep) {
         this.iterFactory = iterFactory;
         this.indexSource = indexStep.source;
