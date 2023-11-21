@@ -19,7 +19,7 @@ export class Producer implements Iter {
         this.lineNumbers = step.lines;
     }
 
-    async next(): Promise<IterValue> {
+    async next(): Promise<Row | EndOfFile> {
         if (!this.stream) {
             let fd;
             try {
@@ -72,7 +72,7 @@ export class Producer implements Iter {
         }
     }
 
-    makeRow(line: string): IterValue | undefined {
+    makeRow(line: string): Row | undefined {
         try {
             const parsed = JSON.parse(line);
             let value = this.columns.map((c) => parsed[c]);
@@ -85,9 +85,8 @@ export class Producer implements Iter {
 }
 
 export interface Iter {
-    next(): Promise<IterValue>;
+    next(): Promise<Row | EndOfFile>;
 }
 
 export type Row = any[];
 export type EndOfFile = "end of file";
-export type IterValue = Row | EndOfFile;
