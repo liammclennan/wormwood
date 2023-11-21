@@ -1,6 +1,6 @@
-import { Query, StoredProcedure } from './../parser';
+import { Query, StoredProcedure } from '../parser/parser';
 import * as fs from "node:fs/promises";
-import {Command, Direction} from "../parser";
+import {Command, Direction} from "../parser/parser";
 import { indexPath } from "../executor/indexer";
 
 /**

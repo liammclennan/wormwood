@@ -1,4 +1,4 @@
-import * as Parser from "./parser";
+import * as Parser from "./parser/parser";
 import * as Planner from "./planner/planner";
 import * as Executor from "./executor/executor";
 import { Iter } from "./executor/producer";
