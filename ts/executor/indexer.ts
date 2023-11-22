@@ -5,9 +5,9 @@ import {Iter, Row, EndOfFile} from "./producer";
 
 export class Indexer implements Iter
 {
-    private iterFactory: () => Promise<Iter>;
-    private indexSource: string;
-    private property: string;
+    private readonly iterFactory: () => Promise<Iter>;
+    private readonly indexSource: string;
+    private readonly property: string;
 
     // iterFactory - function producing an iterator over a source
     constructor(iterFactory: () => Promise<Iter>, indexStep: CreateIndexStep) {

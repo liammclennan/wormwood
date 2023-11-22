@@ -4,13 +4,12 @@ import {Iter, Row, EndOfFile} from "./producer";
 
 export class Filter implements Iter
 {
-    private source: Iter;
+    private readonly source: Iter;
     private readonly property: string;
     private readonly value: any;
-    private columns: string[];
+    private readonly columns: string[];
 
     constructor(source: Iter, filterStep: FilterStep) {
-        assert(filterStep.columns.length > 0, "No columns specified");
         this.source = source;
         this.property = filterStep.property;
         this.value = filterStep.value;

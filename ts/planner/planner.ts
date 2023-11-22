@@ -2,6 +2,7 @@ import { Query, StoredProcedure } from '../parser/parser';
 import * as fs from "node:fs/promises";
 import {Command, Direction} from "../parser/parser";
 import { indexPath } from "../executor/indexer";
+import { assert } from '../assert';
 
 /**
  * Convert a `Query` to a `Plan`.
@@ -91,9 +92,9 @@ async function createQueryPlan(command: Query) {
     let steps: Step[] = [producerStep];
     
     if (command.filter) {
-        if (!command.columns.includes(command.filter[0])) {
-            throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.filter[0]},${command.columns.join(",")} FROM ...'`);
-        }
+        assert(
+            command.columns.includes(command.filter[0]), 
+            `Query must include the filter column. E.g. 'SELECT ${command.filter[0]},${command.columns.join(",")} FROM ...'`);
         let [property, value] = command.filter;
         let index = await findIndex(command.source, property);
 
@@ -119,9 +120,9 @@ async function createQueryPlan(command: Query) {
     }
 
     if (command.orderBy) {
-        if (!command.columns.includes(command.orderBy[0])) {
-            throw new Error(`Query must include the filter column. E.g. 'SELECT ${command.orderBy[0]},${command.columns.join(",")} FROM ...'`);
-        }
+        assert(command.columns.includes(
+            command.orderBy[0]), 
+            `Query must include the filter column. E.g. 'SELECT ${command.orderBy[0]},${command.columns.join(",")} FROM ...'`);
         if (command.aggregation) {
             throw new Error("Order by is not supported with aggregations");
         }

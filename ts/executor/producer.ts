@@ -5,13 +5,13 @@ import { createInterface } from "node:readline";
 import { ProducerStep } from "../planner/planner";
 
 export class Producer implements Iter {
-    readonly filePath: string;
-    lineBuffer: string[] = [];
-    bufferIndex: number = 0;
-    stream: any;
-    streamEnded: boolean = false;
-    readonly columns: string[];
-    readonly lineNumbers: number[];
+    private readonly filePath: string;
+    private lineBuffer: string[] = [];
+    private bufferIndex: number = 0;
+    private stream: any;
+    private streamEnded: boolean = false;
+    private readonly columns: string[];
+    private readonly lineNumbers: number[];
 
     constructor(step: ProducerStep) {
         this.filePath = Path.join(__dirname, "../../../data", `${step.source}.clef`);

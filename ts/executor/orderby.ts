@@ -8,7 +8,6 @@ export class OrderBy implements Iter
     private sorted: Row[];
 
     constructor(source: Iter, orderBy: OrderByStep) {
-        console.assert(orderBy.columns.length > 0, "No columns specified");
         this.source = source;
         this.step = orderBy;
     }

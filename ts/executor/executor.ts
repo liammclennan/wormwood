@@ -20,7 +20,7 @@ export async function run(plan: Planner.Plan): Promise<Iter> {
                 return stk;
             }
             case "mean": {
-                stk.push(new Mean(stk[stk.length - 1], step));
+                stk.push(new Mean(stk[stk.length - 1]));
                 return stk;
             }
             case "orderby": {

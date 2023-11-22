@@ -7,7 +7,7 @@ export class Mean implements Iter
     private sum: number = 0;
     private count: number = 0;
 
-    constructor(source: Iter, meanStep: MeanStep) {
+    constructor(source: Iter) {
         this.source = source;
     }
 
@@ -18,7 +18,7 @@ export class Mean implements Iter
 
         let row = await this.source.next();
         while (row != "end of file") {
-            let value = (row as Row)[0];
+            let value = row[0];
             if (typeof value === "number") {
                 this.sum += value;
                 this.count += 1;
