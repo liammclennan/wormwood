@@ -67,7 +67,7 @@ export class Producer implements Iter {
             return new Promise((res, rej) => {
                 setTimeout(() => {
                     res(this.next())
-                }, 10);
+                }, 1);
             });
         }
     }
