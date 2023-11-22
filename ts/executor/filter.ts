@@ -18,17 +18,15 @@ export class Filter implements Iter
     }
 
     async next(): Promise<Row | EndOfFile> {
-        const row = await this.source.next();
+        let row = await this.source.next();
 
-        switch (row) {
-            case "end of file" as EndOfFile: return row;
-            default: return (
-                (row as Row)
-                // `this.property` not found then columns[-1] is `undefined`
-                [this.columns.indexOf(this.property)] === this.value 
-                    ? row 
-                    : this.next());
+        while (row !== "end of file") {
+            // `this.property` not found then columns[-1] is `undefined`
+            if (row[this.columns.indexOf(this.property)] === this.value) {
+                return row;
+            }
+            row = await this.source.next()
         }
+        return row;
     }
-
 }
