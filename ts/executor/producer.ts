@@ -10,8 +10,8 @@ export class Producer implements Iter {
     bufferIndex: number = 0;
     stream: any;
     streamEnded: boolean = false;
-    columns: string[];
-    lineNumbers: number[];
+    readonly columns: string[];
+    readonly lineNumbers: number[];
 
     constructor(step: ProducerStep) {
         this.filePath = Path.join(__dirname, "../../../data", `${step.source}.clef`);
