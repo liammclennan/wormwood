@@ -5,6 +5,12 @@ import { OrderBy } from "./orderby";
 import { Mean } from "./mean";
 import { Indexer } from "./indexer";
 
+/**
+ * Executes a query plan.
+ * 
+ * @param plan A query plan
+ * @returns An iterator
+ */
 export async function run(plan: Planner.Plan): Promise<Iter> {
     let producer;
     const stack = plan.reduce((stk, step) => {

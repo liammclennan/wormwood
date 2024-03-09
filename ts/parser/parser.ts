@@ -1,9 +1,5 @@
 import { assert } from "../assert";
 
-/**
- * Convert a string query to the corresponding `Command` object.
- */
-
 export type Command = Query | StoredProcedure;
 
 // sp_<name>(<param>[,<param>])
@@ -31,6 +27,9 @@ export type OrderBy = [property: string, direction: Direction];
 
 export type Aggregation = "MEAN";
 
+/**
+ * Convert a string query to the corresponding `Command` object.
+ */
 export function parse(q: string): Command {
     const storedProcedure = spParser(q.trim());
     return storedProcedure ?? queryParser(q.trim());
