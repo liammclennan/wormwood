@@ -1,18 +1,10 @@
 use crate::producer::{Itrator, Row};
 
-pub(crate) struct Filter<'a> {
-    source: &'a mut dyn Itrator,
+pub(crate) struct Filter {
+    pub source: Box<dyn Itrator>,
 }
 
-impl<'a> Filter<'a> {
-    pub(crate) fn new<T: Itrator>(source: &'a mut impl Itrator) -> Filter {
-        Filter {
-            source
-        }
-    }
-}
-
-impl<'a> Itrator for Filter<'a> {
+impl Itrator for Filter {
     fn next(&mut self) -> Option<Row> {
         self.source.next()
     }

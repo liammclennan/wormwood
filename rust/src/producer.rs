@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
 use serde_json::Value;
 
+#[allow(dead_code)]
+
 pub type Row = Vec<Value>;
 pub trait Itrator {
     fn next(&mut self) -> Option<Row>;
