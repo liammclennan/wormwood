@@ -1,7 +1,7 @@
 use crate::producer::{Itrator, Row};
 
 pub(crate) struct Filter {
-    pub source: Box<dyn Itrator>,
+    pub source: crate::producer::Producer,
 }
 
 impl Itrator for Filter {

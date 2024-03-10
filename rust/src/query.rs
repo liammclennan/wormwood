@@ -8,6 +8,6 @@ pub fn evaluate(_user_input: &str) -> Box<dyn Itrator> {
     let p = producer::Producer::new(path, vec!["@t".into(), "@mt".into()]);
 
     Box::new(filter::Filter {
-        source: Box::new(p)
+        source: p
     })
 }
