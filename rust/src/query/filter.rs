@@ -1,7 +1,8 @@
-use crate::producer::{Itrator, Row};
+use crate::query::{Itrator, Row};
+use crate::query::producer::Producer;
 
 pub(crate) struct Filter {
-    pub source: crate::producer::Producer,
+    pub source: Producer,
 }
 
 impl Itrator for Filter {

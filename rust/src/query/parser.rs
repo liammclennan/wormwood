@@ -2,15 +2,15 @@ use serde_json::Value;
 
 #[derive(PartialEq,Debug)]
 pub struct EqualityPredicate {
-    property_name: String,
-    value: Value,
+    pub property_name: String,
+    pub value: Value,
 }
 
 #[derive(PartialEq,Debug)]
 pub struct Query {
-    columns: Vec<String>,
-    source: String,
-    filter: Option<EqualityPredicate>,
+    pub columns: Vec<String>,
+    pub source: String,
+    pub filter: Option<EqualityPredicate>,
 }
 
 /**

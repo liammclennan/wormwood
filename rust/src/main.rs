@@ -1,9 +1,6 @@
 use std::io::{self, BufRead};
 //use crate::producer::Itrator;
 
-mod producer;
-mod filter;
-mod parser;
 mod query;
 
 fn main() {  
