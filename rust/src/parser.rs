@@ -1,12 +1,37 @@
 use serde_json::Value;
 
 #[derive(PartialEq,Debug)]
-struct EqualityPredicate {
+pub struct EqualityPredicate {
     property_name: String,
     value: Value,
 }
 
-pub fn select_list_p(input: String) -> (Vec<String>, String) {
+#[derive(PartialEq,Debug)]
+pub struct Query {
+    columns: Vec<String>,
+    source: String,
+    filter: Option<EqualityPredicate>,
+}
+
+/**
+ * Convert a query string into a `Query` struct.
+ */
+pub fn parse(input: String) -> Query {
+    let (columns, rest) = select_list_p(input);
+    let (source, rest) = source_p(rest);
+    let (filter, _rest) = filter_p(rest);
+
+    Query {
+        columns,
+        source,
+        filter,
+    }
+}
+
+/**
+ * Parse the `SELECT a,b,c` part of a query.
+ */
+fn select_list_p(input: String) -> (Vec<String>, String) {
     let input = consume_leading_whitespace(input);
     if !input.to_lowercase().starts_with("select ") {
         return (vec![], input);
@@ -22,7 +47,10 @@ pub fn select_list_p(input: String) -> (Vec<String>, String) {
     )
 }
 
-pub fn source_p(input: String) -> (String, String) {
+/**
+ * Parse the `FROM my_table` part of a query.
+ */
+fn source_p(input: String) -> (String, String) {
     if !input.to_lowercase().starts_with("from ") {
         return (String::from(""), input);
     }
@@ -30,16 +58,18 @@ pub fn source_p(input: String) -> (String, String) {
     word_p(trimmed)
 }
 
-pub fn filter_p(input: String) -> (Option<EqualityPredicate>, String) {
+/**
+ * Parse the `WHERE q=2` part of a query. 
+ */
+fn filter_p(input: String) -> (Option<EqualityPredicate>, String) {
     let (prelude, mut rest) = chars_p(input, "where ");
     if prelude.len() == 0 {
         return (None, rest);
     }
-
     rest = consume_leading_whitespace(rest);
     let (filter, rest) = word_p(rest);
     let mut splits = filter.split("=");
-    
+
     if let (Some(left), Some(right)) = (splits.next(), splits.next()) {
         (
             Some(EqualityPredicate { 
@@ -53,16 +83,21 @@ pub fn filter_p(input: String) -> (Option<EqualityPredicate>, String) {
     }
 }
 
+/** 
+ * Parse the first word from a string.
+ */
 fn word_p(mut input: String) -> (String, String) {
     if let Some(position) = input.chars().position(|c| c.is_whitespace()) {
-        println!("{}", position);
         let rest = input.split_off(position);
         (input, consume_leading_whitespace(rest))
     } else {
-        (String::from(""), input)
+        (input, String::from(""))
     }
 }
 
+/**
+ * Parse the `pattern` from a string.
+ */
 fn chars_p(mut input: String, pattern: &str) -> (String, String) {
     if input.to_lowercase().starts_with(&pattern.to_lowercase()) {
         let drain = input.drain(..pattern.len());
@@ -70,6 +105,9 @@ fn chars_p(mut input: String, pattern: &str) -> (String, String) {
     } else { (String::from(""), input) }
 }
 
+/** 
+ * Drop the leading whitespace from a string
+ */
 fn consume_leading_whitespace(mut input: String) -> String {
     let maybe_ix = input.chars().position(|c| !c.is_whitespace());
     if let Some(ix) = maybe_ix {
@@ -78,15 +116,32 @@ fn consume_leading_whitespace(mut input: String) -> String {
     input    
 }
 
+/**
+ * Drop the `pattern` from a string.
+ */
 fn consume_chars(input: String, pattern: &str) -> String {
     chars_p(input, pattern).1
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use crate::parser::*;
+
+    #[test]
+    fn parse_select() {
+        assert_eq!(Query { 
+            columns: vec!["a".into(),"b".into()],
+            source: String::from("tableA"),
+            filter: Some(EqualityPredicate {
+                property_name: String::from("a"),
+                value: serde_json::from_str(r#""crab""#).unwrap(),
+            }),
+         }, parse(String::from(
+            r#"SELECT a,b 
+                from tableA
+                where a="crab"
+         "#)));
+    }
 
     #[test]
     fn parse_select_list() {
@@ -115,7 +170,7 @@ mod tests {
                 }), 
                 String::from(""),
             ), 
-            filter_p(String::from("a=1")));
+            filter_p(String::from("where   a=1")));
 
     }
 
