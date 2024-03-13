@@ -13,9 +13,9 @@ pub struct ProducerStep {
 }
 
 pub struct FilterStep {
-    columns: Vec<String>,
-    property_name: String,
-    value: Value,
+    pub columns: Vec<String>,
+    pub property_name: String,
+    pub value: Value,
 }
 
 pub fn plan(query: Query) -> Plan {
