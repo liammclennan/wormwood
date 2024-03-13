@@ -2,12 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
 use serde_json::Value;
 use crate::query::{Row,Itrator};
-
 use super::planner::ProducerStep;
-
-#[allow(dead_code)]
-
-
 
 pub(crate) struct Producer {
     step: ProducerStep,
@@ -16,7 +11,7 @@ pub(crate) struct Producer {
 
 impl Producer {
     pub fn new(step: ProducerStep) -> Producer {
-        let path = format!("/home/liam/code/wormwood/data/{}.clef", step.source);
+        let path = format!("../data/{}.clef", step.source);
         let file = File::open(path).unwrap();
 
         Producer {
