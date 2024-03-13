@@ -12,19 +12,16 @@ use super::planner::ProducerStep;
 pub(crate) struct Producer {
     step: ProducerStep,
     iterator: Lines<BufReader<File>>,
-    cols: Vec<String>,
 }
 
 impl Producer {
-    pub fn new(step: ProducerStep, cols: Vec<String>) -> Producer {
-
+    pub fn new(step: ProducerStep) -> Producer {
         let path = format!("/home/liam/code/wormwood/data/{}.clef", step.source);
-
         let file = File::open(path).unwrap();
+
         Producer {
             step,
             iterator: BufReader::new(file).lines(),
-            cols
         }
     }
 }
@@ -36,7 +33,7 @@ impl Itrator for Producer {
             .and_then(|s| serde_json::from_str(&s).ok())
             .and_then(|o| match o {
                 Value::Object(mut map) => {
-                    let a:Vec<Value> = self.cols.iter().flat_map(|col| {
+                    let a:Vec<Value> = self.step.columns.iter().flat_map(|col| {
                         map.remove(col)
                     }).collect();
                     Some(a)
