@@ -3,7 +3,12 @@ Wormwood
 
 > "The third angel sounded his trumpet, and a great star, blazing like a torch, fell from the sky on a third of the rivers and on the springs of water—the name of the star is Wormwood. A third of the waters turned bitter, and many people died from the waters that had become bitter." (so 1/9th of the waters?)
 
-Wormwood is a trivial, SQL-ish, flat-file, schemaless, read-only database. It attempts to be the simplest possible implementation of standard database architectural ideas.  
+Wormwood is a trivial, SQL-ish, flat-file, schemaless, read-only database. It attempts to be the simplest possible implementation of standard database architectural ideas. 
+
+Preconditions
+--------
+
+Requires node 17 or greater.
 
 To run wormwood
 ------
