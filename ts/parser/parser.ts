@@ -77,11 +77,11 @@ function fieldsParser(q: string): [string[], Aggregation, string] {
         return [[column], "MEAN", remaining];
     }
 
-    const fieldsText = q.slice(0, q.indexOf(' '));
-    const rest = q.slice(q.indexOf(' ') + 1, q.length);
+    const fieldsText = q.slice(0, q.search(/FROM/gi));
+    const rest = q.slice(q.search(/ FROM/gi), q.length).trim();
 
     return [
-        fieldsText.split(','),
+        fieldsText.split(',').map(f => f.trim()),
         undefined,
         rest
     ];
